@@ -132,15 +132,15 @@ CREATE TABLE yt_k_rozdz(
 	CONSTRAINT yt_i_czesci_rozdz FOREIGN KEY (czesc) REFERENCES yt_k_czesci(id)
 );
 /*
-Tworzenie widoków.
+Widoki.
 */
 CREATE VIEW yt_w_rozdz AS
-SELECT yt_k_czesci.typ typ, 'Część nr: '||yt_k_czesci.nr||' '||CASE WHEN yt_k_czesci.typ = 'd' THEN 'Darmowa' WHEN yt_k_czesci.typ = 'p' THEN 'Płatna' END AS nr, yt_k_czesci.id_yt id_yt, yt_k_rozdz.sekunda seksunda, yt_k_rozdz.tytul tytul
+SELECT yt_k_czesci.typ typ, 'Część nr: '||yt_k_czesci.nr||' '||CASE WHEN yt_k_czesci.typ = 'd' THEN 'Darmowa' WHEN yt_k_czesci.typ = 'p' THEN 'Płatna' END AS nr, yt_k_czesci.id_yt id_yt, yt_k_rozdz.sekunda sekunda, yt_k_rozdz.tytul tytul
 FROM yt_k_czesci
 LEFT JOIN yt_k_rozdz ON yt_k_czesci.id = yt_k_rozdz.czesc;
 
 CREATE VIEW yt_w_rozdz_d AS
-SELECT yt_k_czesci.typ typ, yt_k_czesci.id_yt id_yt, yt_k_rozdz.sekunda seksunda, yt_k_rozdz.tytul tytul
+SELECT yt_k_czesci.typ typ, yt_k_czesci.id_yt id_yt, yt_k_rozdz.sekunda sekunda, yt_k_rozdz.tytul tytul
 FROM yt_k_czesci
 LEFT JOIN yt_k_rozdz ON yt_k_czesci.id = yt_k_rozdz.czesc
 WHERE yt_k_czesci.typ = 'd';
