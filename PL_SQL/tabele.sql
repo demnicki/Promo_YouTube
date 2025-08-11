@@ -89,6 +89,7 @@ CREATE TABLE yt_k_odcinki(
 	sezon NUMBER(1) NOT NULL,
 	nr    NUMBER(2) NOT NULL,
 	tytul VARCHAR2(100 CHAR),
+	opis  CLOB,
 	CONSTRAINT yt_i_odcinki PRIMARY KEY (id),
 	CONSTRAINT yt_i_sezony_odcinki FOREIGN KEY (sezon) REFERENCES yt_k_sezony(id)
 );
@@ -114,6 +115,7 @@ CREATE TABLE yt_k_czesci(
 	id    NUMBER(3) DEFAULT ON NULL yt_sek_czesci.NEXTVAL NOT NULL,
 	odc   NUMBER(2) NOT NULL,
 	typ   CHAR(1 CHAR) DEFAULT 'p' NOT NULL,
+	nr    NUMBER(1) NOT NULL,
 	id_yt VARCHAR2(12 CHAR) NOT NULL,
 	CONSTRAINT yt_i_czesci PRIMARY KEY (id),
 	CONSTRAINT yt_i_odcinki_czesci FOREIGN KEY (odc) REFERENCES yt_k_odcinki(id),
@@ -129,3 +131,16 @@ CREATE TABLE yt_k_rozdz(
 	CONSTRAINT yt_i_rozdz PRIMARY KEY (id),
 	CONSTRAINT yt_i_czesci_rozdz FOREIGN KEY (czesc) REFERENCES yt_k_czesci(id)
 );
+/*
+Tworzenie widoków.
+*/
+CREATE VIEW yt_w_rozdz AS
+SELECT yt_k_czesci.typ typ, 'Część nr: '||yt_k_czesci.nr||' '||CASE WHEN yt_k_czesci.typ = 'd' THEN 'Darmowa' WHEN yt_k_czesci.typ = 'p' THEN 'Płatna' END AS nr, yt_k_czesci.id_yt id_yt, yt_k_rozdz.sekunda seksunda, yt_k_rozdz.tytul tytul
+FROM yt_k_czesci
+LEFT JOIN yt_k_rozdz ON yt_k_czesci.id = yt_k_rozdz.czesc;
+
+CREATE VIEW yt_w_rozdz_d AS
+SELECT yt_k_czesci.typ typ, yt_k_czesci.id_yt id_yt, yt_k_rozdz.sekunda seksunda, yt_k_rozdz.tytul tytul
+FROM yt_k_czesci
+LEFT JOIN yt_k_rozdz ON yt_k_czesci.id = yt_k_rozdz.czesc
+WHERE yt_k_czesci.typ = 'd';
