@@ -107,6 +107,7 @@ CREATE TABLE yt_k_pliki_odc(
 	id    NUMBER(3) DEFAULT ON NULL yt_sek_pliki.NEXTVAL NOT NULL,
 	odc   NUMBER(2) NOT NULL,
 	nazwa VARCHAR2(100 CHAR),
+	pdf   BLOB,
 	CONSTRAINT yt_i_pliki_odc PRIMARY KEY (id),
 	CONSTRAINT yt_i_odcinki_pliki FOREIGN KEY (odc) REFERENCES yt_k_odcinki(id)
 );
@@ -144,3 +145,21 @@ SELECT yt_k_czesci.typ typ, yt_k_czesci.id_yt id_yt, yt_k_rozdz.sekunda sekunda,
 FROM yt_k_czesci
 LEFT JOIN yt_k_rozdz ON yt_k_czesci.id = yt_k_rozdz.czesc
 WHERE yt_k_czesci.typ = 'd';
+
+/*
+Kontrolery RESTapi.
+*/
+DECLARE
+	z_pdf BLOB;
+	n NUMBER(1);
+BEGIN
+	SELECT count(id) INTO n FROM yt_k_pliki_odc WHERE id = :id;
+	IF n = 1 THEN
+		SELECT pdf INTO z_pdf FROM yt_k_pliki_odc WHERE id = :id;
+		owa_util.mime_header('application/pdf', true, 'UTF-8');
+		wpg_docload.download_file(z_pdf);
+	ELSE
+		owa_util.mime_header('text/html', true, 'UTF-8');
+		htp.p('<h1>Nie ma takiego pliku...</h1>');
+	END IF;
+END;
