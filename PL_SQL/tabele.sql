@@ -98,6 +98,7 @@ CREATE TABLE yt_k_subs(
 	id  CHAR(6 CHAR) NOT NULL,
 	typ CHAR(1 CHAR) DEFAULT 'z' NOT NULL,
 	odc NUMBER(2) NOT NULL,
+	CONSTRAINT yt_i_subs UNIQUE (id, odc),
 	CONSTRAINT yt_i_uzytkownicy_subs FOREIGN KEY (id) REFERENCES yt_k_uzytkownicy(id),
 	CONSTRAINT yt_o_subs CHECK ((typ) in ('z','d')),
 	CONSTRAINT yt_i_odcinki_subs FOREIGN KEY (odc) REFERENCES yt_k_odcinki(id)
