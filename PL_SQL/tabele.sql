@@ -75,7 +75,8 @@ CREATE TABLE yt_k_btc_hash(
 	id         CHAR(6 CHAR) NOT NULL,
 	data_trans DATE DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	hash       CHAR(65 CHAR) NOT NULL,
-	CONSTRAINT yt_i_uzytkownicy_btc_hash FOREIGN KEY (id) REFERENCES yt_k_uzytkownicy(id)
+	CONSTRAINT yt_i_uzytkownicy_btc_hash FOREIGN KEY (id) REFERENCES yt_k_uzytkownicy(id),
+	CONSTRAINT yt_i_hash_trans UNIQUE (hash)
 );
 
 CREATE TABLE yt_k_sezony(
