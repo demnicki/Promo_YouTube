@@ -45,7 +45,8 @@ CREATE TABLE yt_k_profile(
 	nip    CHAR(10 CHAR),
 	nr_tel CHAR(9 CHAR),
 	url    VARCHAR2(100 CHAR),
-	CONSTRAINT yt_i_uzytkownicy_profile FOREIGN KEY (id) REFERENCES yt_k_uzytkownicy(id)
+	CONSTRAINT yt_i_uzytkownicy_profile FOREIGN KEY (id) REFERENCES yt_k_uzytkownicy(id),
+	CONSTRAINT yt_i_profile UNIQUE (id)
 );
 
 CREATE TABLE yt_k_trenerzy(
