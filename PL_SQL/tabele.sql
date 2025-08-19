@@ -139,13 +139,15 @@ CREATE TABLE yt_k_rozdz(
 Widoki.
 */
 CREATE VIEW yt_w_rozdz AS
-SELECT yt_k_czesci.typ typ, 'Część nr: '||yt_k_czesci.nr||' '||CASE WHEN yt_k_czesci.typ = 'd' THEN 'Darmowa' WHEN yt_k_czesci.typ = 'p' THEN 'Płatna' END AS nr, yt_k_czesci.id_yt id_yt, yt_k_rozdz.sekunda sekunda, yt_k_rozdz.tytul tytul
-FROM yt_k_czesci
+SELECT yt_k_odcinki.id odc, yt_k_czesci.typ typ, 'Część nr: '||yt_k_czesci.nr||' '||CASE WHEN yt_k_czesci.typ = 'd' THEN 'Darmowa' WHEN yt_k_czesci.typ = 'p' THEN 'Płatna' END AS nr, yt_k_czesci.id_yt id_yt, yt_k_rozdz.sekunda sekunda, yt_k_rozdz.tytul tytul
+FROM yt_k_odcinki 
+LEFT JOIN yt_k_czesci ON yt_k_odcinki.id = yt_k_czesci.odc
 LEFT JOIN yt_k_rozdz ON yt_k_czesci.id = yt_k_rozdz.czesc;
 
 CREATE VIEW yt_w_rozdz_d AS
-SELECT yt_k_czesci.typ typ, yt_k_czesci.id_yt id_yt, yt_k_rozdz.sekunda sekunda, yt_k_rozdz.tytul tytul
-FROM yt_k_czesci
+SELECT yt_k_odcinki.id odc, yt_k_czesci.typ typ, 'Część nr: '||yt_k_czesci.nr||' '||CASE WHEN yt_k_czesci.typ = 'd' THEN 'Darmowa' WHEN yt_k_czesci.typ = 'p' THEN 'Płatna' END AS nr, yt_k_czesci.id_yt id_yt, yt_k_rozdz.sekunda sekunda, yt_k_rozdz.tytul tytul
+FROM yt_k_odcinki 
+LEFT JOIN yt_k_czesci ON yt_k_odcinki.id = yt_k_czesci.odc
 LEFT JOIN yt_k_rozdz ON yt_k_czesci.id = yt_k_rozdz.czesc
 WHERE yt_k_czesci.typ = 'd';
 
