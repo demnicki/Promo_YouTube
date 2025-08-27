@@ -1,0 +1,41 @@
+﻿{
+  "suma_wsz": 3,
+  "suma_przer": 1,
+  "suma_nieudanych": 1,
+  "suma_udanych": 1,
+  "lista": [
+    {
+      "id": 100,
+      "kat": "Rewolucja przerwana",
+      "wojew": "mazowieckie",
+      "sezon": 28,
+      "odc": 2,
+      "geo_szer": 21.0425,
+      "geo_dlug": 52.1473,
+      "rest": "Karczma u Ceprów",
+      "opis": "Rewolucja przerwana w dawnej restauracji Karpielówka na warszawskim Ursynowie."
+    },
+    {
+      "id": 101,
+      "kat": "Rewolucja nieuadana",
+      "wojew": "pomorskie",
+      "sezon": 19,
+      "odc": 3,
+      "geo_szer": 18.2449,
+      "geo_dlug": 54.6033,
+      "rest": "Barszcz",
+      "opis": "Restauracja Barszcz w Wejherowie przy ulicy Rzeźnickiej 15. Dawna nazwa to Gościnna Ukrainka."
+    },
+    {
+      "id": 102,
+      "kat": "Rewolucja udana",
+      "wojew": "lubuskie",
+      "sezon": 5,
+      "odc": 11,
+      "geo_szer": 15.5062,
+      "geo_dlug": 51.9401,
+      "rest": "New Namaste India",
+      "opis": "Restauracja New Namaste India znajduje się w Zielonej Górze przy ulicy Kupieckiej 32."
+    }
+  ]
+}
