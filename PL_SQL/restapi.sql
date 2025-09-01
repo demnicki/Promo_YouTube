@@ -41,4 +41,46 @@ END;
 
 /*
 Projekt „Kuchenne rewolucje”. Webservisy do obsługi hurtowni JSON, z odcinkami rewolucji.
+
+Metoda GET. Pobranie całej tabeli.
 */
+DECLARE
+    CURSOR lista IS SELECT * FROM kr_t_odcinki;
+    suma_wsz        NUMBER(3);
+    suma_przer      NUMBER(3);
+    suma_nieudanych NUMBER(3);
+    suma_udanych    NUMBER(3);
+    caly_json       JSON_OBJECT_T;
+    element_json    JSON_OBJECT_T;    
+    tab_lista       JSON_ARRAY_T;
+BEGIN
+    SELECT count(id) INTO suma_wsz FROM kr_t_odcinki;
+    SELECT count(id) INTO suma_przer FROM kr_t_odcinki WHERE kategoria = 0;
+    SELECT count(id) INTO suma_nieudanych FROM kr_t_odcinki WHERE kategoria = 1;
+    SELECT count(id) INTO suma_udanych FROM kr_t_odcinki WHERE kategoria = 2;
+    caly_json := json_object_t();
+    tab_lista := json_array_t();
+    FOR i IN lista LOOP
+        element_json := json_object_t();
+        element_json.put('id', i.id);
+        element_json.put('kat', i.kategoria);
+        element_json.put('wojew', i.wojewodztwo);
+        element_json.put('sezon', i.sezon);
+        element_json.put('odc', i.odcinek);
+
+        element_json.put('rest', i.nazwa_rest);
+        element_json.put('opis', i.opis);
+        tab_lista.append(element_json);
+    END LOOP;
+    caly_json.put('suma_wsz', suma_wsz);
+    caly_json.put('suma_przer', suma_przer);
+    caly_json.put('suma_nieudanych', suma_nieudanych);
+    caly_json.put('suma_udanych', suma_udanych);
+    caly_json.put('lista', tab_lista);
+    owa_util.mime_header('application/json', true, 'UTF-8');
+    htp.p(caly_json.stringify);
+EXCEPTION
+    WHEN others THEN
+    NULL;
+
+END;
