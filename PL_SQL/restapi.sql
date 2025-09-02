@@ -67,7 +67,8 @@ BEGIN
         element_json.put('wojew', i.wojewodztwo);
         element_json.put('sezon', i.sezon);
         element_json.put('odc', i.odcinek);
-
+        element_json.put('geo_szer', i.lokacja.sdo_point.y);
+        element_json.put('geo_dlug', i.lokacja.sdo_point.x);
         element_json.put('rest', i.nazwa_rest);
         element_json.put('opis', i.opis);
         tab_lista.append(element_json);
@@ -81,6 +82,26 @@ BEGIN
     htp.p(caly_json.stringify);
 EXCEPTION
     WHEN others THEN
-    NULL;
+    caly_json := json_object_t();
+    caly_json.put('error', 'Nierozpoznany błąd bazy danych');
+    owa_util.mime_header('application/json', true, 'UTF-8');
+    htp.p(caly_json.stringify);
+END;
 
+/*
+Metoda POST. Wstawienie nowych lokacji restauracji.
+*/
+DECLARE
+    plik      BLOB;
+    strumien  CLOB;
+    caly_json JSON_OBJECT_T;
+    tab_lista JSON_ARRAY_T;
+BEGIN
+    plik := :body;
+    strumien := utl_raw.cast_to_varchar2(plik);
+    caly_json := json_object_t();
+    tab_lista := json_array_t(strumien);
+    caly_json.put('n_wierszy', tab_lista.get_size());
+    owa_util.mime_header('application/json', true, 'UTF-8');
+    htp.p(caly_json.stringify);
 END;
