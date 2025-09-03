@@ -100,6 +100,10 @@ DECLARE
     caly_json       JSON_OBJECT_T;
     tab_lista       JSON_ARRAY_T;
     wiersz_json     JSON_OBJECT_T;
+    blad_pliku EXCEPTION;
+    blad_tabeli EXCEPTION;
+    PRAGMA EXCEPTION_INIT(blad_pliku, -40441);
+    PRAGMA EXCEPTION_INIT(blad_tabeli, -2291);
 BEGIN
     SAVEPOINT a;
     SELECT file_content INTO plik FROM apex_workspace_static_files WHERE workspace_file_id = 81049231002863885122;
@@ -143,4 +147,23 @@ BEGIN
     caly_json.put('niepraw_wiersze', niepraw_wiersze);
     owa_util.mime_header('application/json', true, 'UTF-8');
     htp.p(caly_json.stringify);
+EXCEPTION
+    WHEN blad_pliku THEN
+        ROLLBACK TO a;
+        caly_json := json_object_t();
+        caly_json.put('error', 'Przesłany plik JSON, nie jest prawidłowy.');
+        owa_util.mime_header('application/json', true, 'UTF-8');
+        htp.p(caly_json.stringify);
+    WHEN blad_tabeli THEN
+        ROLLBACK TO a;
+        caly_json := json_object_t();
+        caly_json.put('error', 'Przesłąny hurtownia ma nieprawidłowe wartości indeksów.');
+        owa_util.mime_header('application/json', true, 'UTF-8');
+        htp.p(caly_json.stringify);
+    WHEN others THEN
+        ROLLBACK TO a;
+        caly_json := json_object_t();
+        caly_json.put('error', 'Nastąpił nieprzewdziany błąd.');
+        owa_util.mime_header('application/json', true, 'UTF-8');
+        htp.p(caly_json.stringify);
 END;
