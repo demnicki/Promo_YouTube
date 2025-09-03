@@ -51,7 +51,7 @@ DECLARE
     suma_nieudanych NUMBER(3);
     suma_udanych    NUMBER(3);
     caly_json       JSON_OBJECT_T;
-    element_json    JSON_OBJECT_T;    
+    wiersz_json     JSON_OBJECT_T;    
     tab_lista       JSON_ARRAY_T;
 BEGIN
     SELECT count(id) INTO suma_wsz FROM kr_t_odcinki;
@@ -61,17 +61,17 @@ BEGIN
     caly_json := json_object_t();
     tab_lista := json_array_t();
     FOR i IN lista LOOP
-        element_json := json_object_t();
-        element_json.put('id', i.id);
-        element_json.put('kat', i.kategoria);
-        element_json.put('wojew', i.wojewodztwo);
-        element_json.put('sezon', i.sezon);
-        element_json.put('odc', i.odcinek);
-        element_json.put('geo_szer', i.lokacja.sdo_point.y);
-        element_json.put('geo_dlug', i.lokacja.sdo_point.x);
-        element_json.put('rest', i.nazwa_rest);
-        element_json.put('opis', i.opis);
-        tab_lista.append(element_json);
+        wiersz_json := json_object_t();
+        wiersz_json.put('id', i.id);
+        wiersz_json.put('kat', i.kategoria);
+        wiersz_json.put('wojew', i.wojewodztwo);
+        wiersz_json.put('sezon', i.sezon);
+        wiersz_json.put('odc', i.odcinek);
+        wiersz_json.put('geo_szer', i.lokacja.sdo_point.y);
+        wiersz_json.put('geo_dlug', i.lokacja.sdo_point.x);
+        wiersz_json.put('rest', i.nazwa_rest);
+        wiersz_json.put('opis', i.opis);
+        tab_lista.append(wiersz_json);
     END LOOP;
     caly_json.put('suma_wsz', suma_wsz);
     caly_json.put('suma_przer', suma_przer);
@@ -92,16 +92,55 @@ END;
 Metoda POST. Wstawienie nowych lokacji restauracji.
 */
 DECLARE
-    plik      BLOB;
-    strumien  CLOB;
-    caly_json JSON_OBJECT_T;
-    tab_lista JSON_ARRAY_T;
+    wiersz          kr_t_odcinki%ROWTYPE;
+    plik            BLOB;
+    strumien        CLOB;
+    praw_wiersze    NUMBER(4) := 0;
+    niepraw_wiersze NUMBER(4) := 0;
+    caly_json       JSON_OBJECT_T;
+    tab_lista       JSON_ARRAY_T;
+    wiersz_json     JSON_OBJECT_T;
 BEGIN
-    plik := :body;
+    SAVEPOINT a;
+    SELECT file_content INTO plik FROM apex_workspace_static_files WHERE workspace_file_id = 81049231002863885122;
+    -- plik := :body;
     strumien := utl_raw.cast_to_varchar2(plik);
     caly_json := json_object_t();
     tab_lista := json_array_t(strumien);
-    caly_json.put('n_wierszy', tab_lista.get_size());
+    FOR i IN 0..tab_lista.get_size() - 1 LOOP
+        wiersz_json := json_object_t();
+        wiersz_json := treat(tab_lista.get(i) AS JSON_OBJECT_T);
+        IF wiersz_json.has('kat')       AND
+            wiersz_json.has('wojew')    AND
+            wiersz_json.has('sezon')    AND
+            wiersz_json.has('odc')      AND
+            wiersz_json.has('geo_szer') AND
+            wiersz_json.has('geo_dlug') AND
+            wiersz_json.has('rest')     THEN
+            wiersz.kategoria := wiersz_json.get_number('kat');
+            wiersz.wojewodztwo := upper(wiersz_json.get_string('wojew'));
+            wiersz.sezon := wiersz_json.get_number('kat');
+            wiersz.odcinek := wiersz_json.get_number('odc');
+            wiersz.lokacja := sdo_geometry(2001, 4326, sdo_point_type(wiersz_json.get_number('geo_dlug'), wiersz_json.get_number('geo_szer'), NULL), NULL, NULL);
+            wiersz.nazwa_rest := wiersz_json.get_string('rest');
+            wiersz.opis := wiersz_json.get_string('opis');
+            INSERT INTO kr_t_odcinki(kategoria, wojewodztwo, sezon, odcinek, lokacja, nazwa_rest, opis)
+                VALUES (wiersz.kategoria,
+                wiersz.wojewodztwo,
+                wiersz.sezon,
+                wiersz.odcinek,
+                wiersz.lokacja,
+                wiersz.nazwa_rest,
+                wiersz.opis);
+            praw_wiersze := praw_wiersze + 1;
+        ELSE
+            niepraw_wiersze := niepraw_wiersze + 1;
+       END IF;
+    END LOOP;
+    COMMIT;
+    caly_json.put('wsz_wiersze', tab_lista.get_size());
+    caly_json.put('praw_wiersze', praw_wiersze);
+    caly_json.put('niepraw_wiersze', niepraw_wiersze);
     owa_util.mime_header('application/json', true, 'UTF-8');
     htp.p(caly_json.stringify);
 END;
