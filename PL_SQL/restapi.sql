@@ -89,6 +89,11 @@ EXCEPTION
 END;
 
 /*
+Pobranie dowolnego pliku jako BLOB z tabeli plików statycznych APEX.
+*/
+SELECT file_content INTO [zmienna BLOB] FROM apex_workspace_static_files WHERE workspace_file_id = [?];
+
+/*
 Metoda POST. Wstawienie nowych lokacji restauracji.
 */
 DECLARE
@@ -106,8 +111,7 @@ DECLARE
     PRAGMA EXCEPTION_INIT(blad_tabeli, -2291);
 BEGIN
     SAVEPOINT a;
-    SELECT file_content INTO plik FROM apex_workspace_static_files WHERE workspace_file_id = 81049231002863885122;
-    -- plik := :body;
+    plik := :body;
     strumien := utl_raw.cast_to_varchar2(plik);
     caly_json := json_object_t();
     tab_lista := json_array_t(strumien);
@@ -120,10 +124,11 @@ BEGIN
             wiersz_json.has('odc')      AND
             wiersz_json.has('geo_szer') AND
             wiersz_json.has('geo_dlug') AND
-            wiersz_json.has('rest')     THEN
+            wiersz_json.has('rest')     AND
+            wiersz_json.has('opis')     THEN
             wiersz.kategoria := wiersz_json.get_number('kat');
             wiersz.wojewodztwo := upper(wiersz_json.get_string('wojew'));
-            wiersz.sezon := wiersz_json.get_number('kat');
+            wiersz.sezon := wiersz_json.get_number('sezon');
             wiersz.odcinek := wiersz_json.get_number('odc');
             wiersz.lokacja := sdo_geometry(2001, 4326, sdo_point_type(wiersz_json.get_number('geo_dlug'), wiersz_json.get_number('geo_szer'), NULL), NULL, NULL);
             wiersz.nazwa_rest := wiersz_json.get_string('rest');
@@ -166,4 +171,108 @@ EXCEPTION
         caly_json.put('error', 'Nastąpił nieprzewdziany błąd.');
         owa_util.mime_header('application/json', true, 'UTF-8');
         htp.p(caly_json.stringify);
+END;
+
+/*
+Metoda PUT. Edytowanie istniejących lokacji restauracji.
+*/
+DECLARE
+    wiersz          kr_t_odcinki%ROWTYPE;
+    plik            BLOB;
+    strumien        CLOB;
+    praw_wiersze    NUMBER(4) := 0;
+    niepraw_wiersze NUMBER(4) := 0;
+    n               NUMBER(1);
+    caly_json       JSON_OBJECT_T;
+    tab_lista       JSON_ARRAY_T;
+    wiersz_json     JSON_OBJECT_T;
+    blad_pliku EXCEPTION;
+    blad_tabeli EXCEPTION;
+    PRAGMA EXCEPTION_INIT(blad_pliku, -40441);
+    PRAGMA EXCEPTION_INIT(blad_tabeli, -2291);
+BEGIN
+    SAVEPOINT a;
+    plik := :body;
+    strumien := utl_raw.cast_to_varchar2(plik);
+    caly_json := json_object_t();
+    tab_lista := json_array_t(strumien);
+    FOR i IN 0..tab_lista.get_size() - 1 LOOP
+        wiersz_json := json_object_t();
+        wiersz_json := treat(tab_lista.get(i) AS JSON_OBJECT_T);
+        wiersz.id := wiersz_json.get_number('id');
+        SELECT count(id) INTO n FROM kr_t_odcinki WHERE id = wiersz.id;
+        IF n = 1                        AND
+            wiersz_json.has('kat')      AND
+            wiersz_json.has('wojew')    AND
+            wiersz_json.has('sezon')    AND
+            wiersz_json.has('odc')      AND
+            wiersz_json.has('geo_szer') AND
+            wiersz_json.has('geo_dlug') AND
+            wiersz_json.has('rest')     AND
+            wiersz_json.has('opis')     THEN
+            wiersz.kategoria := wiersz_json.get_number('kat');
+            wiersz.wojewodztwo := upper(wiersz_json.get_string('wojew'));
+            wiersz.sezon := wiersz_json.get_number('sezon');
+            wiersz.odcinek := wiersz_json.get_number('odc');
+            wiersz.lokacja := sdo_geometry(2001, 4326, sdo_point_type(wiersz_json.get_number('geo_dlug'), wiersz_json.get_number('geo_szer'), NULL), NULL, NULL);
+            wiersz.nazwa_rest := wiersz_json.get_string('rest');
+            wiersz.opis := wiersz_json.get_string('opis');
+            UPDATE kr_t_odcinki SET
+                kategoria = wiersz.kategoria,
+                wojewodztwo = wiersz.wojewodztwo,
+                sezon = wiersz.sezon,
+                odcinek = wiersz.odcinek,
+                lokacja = wiersz.lokacja,
+                nazwa_rest = wiersz.nazwa_rest,
+                opis = wiersz.opis
+            WHERE id = wiersz.id;
+            praw_wiersze := praw_wiersze + 1;
+        ELSE
+            niepraw_wiersze := niepraw_wiersze + 1;
+       END IF;
+    END LOOP;
+    COMMIT;
+    caly_json.put('wsz_wiersze', tab_lista.get_size());
+    caly_json.put('praw_wiersze', praw_wiersze);
+    caly_json.put('niepraw_wiersze', niepraw_wiersze);
+    owa_util.mime_header('application/json', true, 'UTF-8');
+    htp.p(caly_json.stringify);
+EXCEPTION
+    WHEN blad_pliku THEN
+        ROLLBACK TO a;
+        caly_json := json_object_t();
+        caly_json.put('error', 'Przesłany plik JSON, nie jest prawidłowy.');
+        owa_util.mime_header('application/json', true, 'UTF-8');
+        htp.p(caly_json.stringify);
+    WHEN blad_tabeli THEN
+        ROLLBACK TO a;
+        caly_json := json_object_t();
+        caly_json.put('error', 'Przesłąny hurtownia ma nieprawidłowe wartości indeksów.');
+        owa_util.mime_header('application/json', true, 'UTF-8');
+        htp.p(caly_json.stringify);
+    WHEN others THEN
+        ROLLBACK TO a;
+        caly_json := json_object_t();
+        caly_json.put('error', 'Nastąpił nieprzewdziany błąd.');
+        owa_util.mime_header('application/json', true, 'UTF-8');
+        htp.p(caly_json.stringify);
+END;
+/*
+Metoda DELETE. Usuwanie istniejących lokacji restauracji.
+*/
+DECLARE
+    n         NUMBER(1);
+    caly_json JSON_OBJECT_T;
+BEGIN
+    SELECT count(id) INTO n FROM kr_t_odcinki WHERE id = :id;
+    caly_json := json_object_t();
+    IF n = 1 THEN
+        DELETE FROM kr_t_odcinki WHERE id = :id;
+        COMMIT;
+        caly_json.put('kom', 'Usunięto pomyślnie lokację o ID '||:id||'!');
+    ELSE
+         caly_json.put('error', 'Błędny identyfikator lokacji restauracji.');
+    END IF;
+    owa_util.mime_header('application/json', true, 'UTF-8');
+    htp.p(caly_json.stringify);
 END;

@@ -1,34 +1,34 @@
 ﻿[
   {
-    "id": 100,
+    "id": 125,
     "kat": 0,
-    "wojew": "mz",
+    "wojew": "MZ",
     "sezon": 28,
     "odc": 2,
-    "geo_szer": 21.0425,
-    "geo_dlug": 52.1473,
+    "geo_szer": 52.14732158497869,
+    "geo_dlug": 21.042497898399702,
     "rest": "Karczma u Ceprów",
     "opis": "Rewolucja przerwana w dawnej restauracji Karpielówka na warszawskim Ursynowie."
   },
   {
-    "id": 101,
+    "id": 126,
     "kat": 1,
-    "wojew": "pm",
+    "wojew": "PM",
     "sezon": 19,
     "odc": 3,
-    "geo_szer": 18.2449,
-    "geo_dlug": 54.6033,
+    "geo_szer": 54.60327898459711,
+    "geo_dlug": 18.2449279946498,
     "rest": "Barszcz",
     "opis": "Restauracja Barszcz w Wejherowie przy ulicy Rzeźnickiej 15. Dawna nazwa to Gościnna Ukrainka."
   },
   {
-    "id": 102,
+    "id": 127,
     "kat": 2,
-    "wojew": "lb",
+    "wojew": "LB",
     "sezon": 5,
     "odc": 11,
-    "geo_szer": 15.5062,
-    "geo_dlug": 51.9401,
+    "geo_szer": 51.94013342607906,
+    "geo_dlug": 15.506193437868108,
     "rest": "New Namaste India",
     "opis": "Restauracja New Namaste India znajduje się w Zielonej Górze przy ulicy Kupieckiej 32."
   }
